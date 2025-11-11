@@ -64,8 +64,9 @@ cryptoasia/
 │   │   ├── globals.css      # Global styles
 │   │   ├── layout.tsx       # Root layout
 │   │   └── page.tsx         # Home page
-│   ├── components/          # Reusable components
-│   ├── lib/                 # Utility functions
+│   ├── src/                 # Source code
+│   │   ├── components/      # Reusable components
+│   │   └── lib/             # Utility functions
 │   ├── public/              # Static assets
 │   ├── netlify.toml         # Netlify configuration
 │   ├── render.yaml          # Render configuration

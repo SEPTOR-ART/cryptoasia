@@ -23,8 +23,9 @@ client/
 │   ├── support/         # Support page
 │   ├── layout.tsx       # Root layout
 │   └── page.tsx         # Home page
-├── components/          # Reusable components
-├── lib/                 # Utility functions
+├── src/                 # Source code
+│   ├── components/      # Reusable components
+│   └── lib/             # Utility functions
 ├── public/              # Static assets
 └── package.json         # Project dependencies
 ```

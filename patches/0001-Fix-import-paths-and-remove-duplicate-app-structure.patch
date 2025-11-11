@@ -1,0 +1,286 @@
+From 33faa8e8f858c9e5636725f6f78bda1568e27a07 Mon Sep 17 00:00:00 2001
+From: SEPTOR-ART <sirprist1@gmail.com>
+Date: Tue, 11 Nov 2025 12:20:50 +0100
+Subject: [PATCH] Fix import paths and remove duplicate app structure
+
+---
+ app/dashboard/page.tsx        |  4 +-
+ app/login/page.tsx            |  2 +-
+ app/page.tsx                  |  2 +-
+ app/request-purchase/page.tsx |  3 +-
+ app/signup/page.tsx           |  2 +-
+ app/support/page.tsx          |  2 +-
+ next-env.d.ts                 |  2 +-
+ src/components/Navigation.tsx | 77 +++++++++++++++++++++++++++++++++
+ src/lib/crypto.ts             | 80 +++++++++++++++++++++++++++++++++++
+ 9 files changed, 166 insertions(+), 8 deletions(-)
+ create mode 100644 src/components/Navigation.tsx
+ create mode 100644 src/lib/crypto.ts
+
+diff --git a/app/dashboard/page.tsx b/app/dashboard/page.tsx
+index 2f433bd..6e4dcc5 100644
+--- a/app/dashboard/page.tsx
++++ b/app/dashboard/page.tsx
+@@ -1,8 +1,8 @@
+ 'use client';
+ 
+ import { useState, useEffect } from 'react';
+-import Navigation from '../../components/Navigation';
+-import { fetchCryptoData, Cryptocurrency } from '../../lib/crypto';
++import Navigation from '../../src/components/Navigation';
++import { fetchCryptoData, Cryptocurrency } from '../../src/lib/crypto';
+ 
+ // Mock data for recent transactions
+ const mockTransactions = [
+diff --git a/app/login/page.tsx b/app/login/page.tsx
+index e241e7f..1f74113 100644
+--- a/app/login/page.tsx
++++ b/app/login/page.tsx
+@@ -3,7 +3,7 @@
+ import Link from 'next/link';
+ import { useState } from 'react';
+ import { useRouter } from 'next/navigation';
+-import Navigation from '../../components/Navigation';
++import Navigation from '../../src/components/Navigation';
+ 
+ export default function Login() {
+   const [email, setEmail] = useState('');
+diff --git a/app/page.tsx b/app/page.tsx
+index d493ae8..d4ee8fd 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -2,7 +2,7 @@
+ 
+ import Link from 'next/link';
+ import { useState } from 'react';
+-import Navigation from '../../components/Navigation';
++import Navigation from '../src/components/Navigation';
+ 
+ export default function Home() {
+   const [isLoggedIn, setIsLoggedIn] = useState(false);
+diff --git a/app/request-purchase/page.tsx b/app/request-purchase/page.tsx
+index 8b78a2d..871cbc1 100644
+--- a/app/request-purchase/page.tsx
++++ b/app/request-purchase/page.tsx
+@@ -1,7 +1,8 @@
+ 'use client';
+ 
+ import { useState } from 'react';
+-import Navigation from '../../../components/Navigation';
++import Link from 'next/link';
++import Navigation from '../../src/components/Navigation';
+ 
+ export default function RequestPurchase() {
+   const [formData, setFormData] = useState({
+diff --git a/app/signup/page.tsx b/app/signup/page.tsx
+index 907ac5c..4844f3b 100644
+--- a/app/signup/page.tsx
++++ b/app/signup/page.tsx
+@@ -3,7 +3,7 @@
+ import Link from 'next/link';
+ import { useState } from 'react';
+ import { useRouter } from 'next/navigation';
+-import Navigation from '../../components/Navigation';
++import Navigation from '../../src/components/Navigation';
+ 
+ export default function Signup() {
+   const [name, setName] = useState('');
+diff --git a/app/support/page.tsx b/app/support/page.tsx
+index 8cebc0f..a1a96c4 100644
+--- a/app/support/page.tsx
++++ b/app/support/page.tsx
+@@ -2,7 +2,7 @@
+ 
+ import { useState } from 'react';
+ import Link from 'next/link';
+-import Navigation from '../../components/Navigation';
++import Navigation from '../../src/components/Navigation';
+ 
+ export default function Support() {
+   const [activeTab, setActiveTab] = useState('contact');
+diff --git a/next-env.d.ts b/next-env.d.ts
+index c4b7818..9edff1c 100644
+--- a/next-env.d.ts
++++ b/next-env.d.ts
+@@ -1,6 +1,6 @@
+ /// <reference types="next" />
+ /// <reference types="next/image-types/global" />
+-import "./.next/dev/types/routes.d.ts";
++import "./.next/types/routes.d.ts";
+ 
+ // NOTE: This file should not be edited
+ // see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+diff --git a/src/components/Navigation.tsx b/src/components/Navigation.tsx
+new file mode 100644
+index 0000000..194b98b
+--- /dev/null
++++ b/src/components/Navigation.tsx
+@@ -0,0 +1,77 @@
++'use client';
++
++import Link from 'next/link';
++import { usePathname } from 'next/navigation';
++
++export default function Navigation({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
++  const pathname = usePathname();
++  
++  const navigationItems = [
++    { name: 'Home', href: '/' },
++    { name: 'Dashboard', href: '/dashboard' },
++    { name: 'Request Purchase', href: '/request-purchase' },
++    { name: 'Support', href: '/support' },
++  ];
++
++  const authItems = [
++    { name: 'Login', href: '/login' },
++    { name: 'Sign Up', href: '/signup' },
++  ];
++
++  const isActive = (href: string) => {
++    if (href === '/') {
++      return pathname === '/';
++    }
++    return pathname?.startsWith(href);
++  };
++
++  return (
++    <nav className="border-b border-gray-800">
++      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
++        <div className="flex items-center justify-between h-16">
++          <div className="flex items-center">
++            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
++              NovaCrypto
++            </Link>
++          </div>
++          <div className="hidden md:block">
++            <div className="ml-10 flex items-baseline space-x-4">
++              {navigationItems.map((item) => (
++                <Link
++                  key={item.name}
++                  href={item.href}
++                  className={`px-3 py-2 rounded-md text-sm font-medium ${
++                    isActive(item.href)
++                      ? 'bg-gray-900 text-white'
++                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
++                  }`}
++                >
++                  {item.name}
++                </Link>
++              ))}
++              {!isLoggedIn ? (
++                authItems.map((item) => (
++                  <Link
++                    key={item.name}
++                    href={item.href}
++                    className={`px-3 py-2 rounded-md text-sm font-medium ${
++                      isActive(item.href)
++                        ? 'bg-gray-900 text-white'
++                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
++                    }`}
++                  >
++                    {item.name}
++                  </Link>
++                ))
++              ) : (
++                <button className="px-4 py-2 text-sm font-medium rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300">
++                  Logout
++                </button>
++              )}
++            </div>
++          </div>
++        </div>
++      </div>
++    </nav>
++  );
++}
+\ No newline at end of file
+diff --git a/src/lib/crypto.ts b/src/lib/crypto.ts
+new file mode 100644
+index 0000000..a8310d4
+--- /dev/null
++++ b/src/lib/crypto.ts
+@@ -0,0 +1,80 @@
++// Utility functions for cryptocurrency data
++
++export interface Cryptocurrency {
++  id: string;
++  symbol: string;
++  name: string;
++  current_price: number;
++  price_change_percentage_24h: number;
++  market_cap: number;
++  volume_24h: number;
++  image: string;
++}
++
++export async function fetchCryptoData(): Promise<Cryptocurrency[]> {
++  try {
++    const response = await fetch('/api/crypto');
++    if (!response.ok) {
++      throw new Error('Failed to fetch cryptocurrency data');
++    }
++    return await response.json();
++  } catch (error) {
++    console.error('Error fetching cryptocurrency data:', error);
++    // Return mock data as fallback
++    return [
++      {
++        id: 'bitcoin',
++        symbol: 'BTC',
++        name: 'Bitcoin',
++        current_price: 50000,
++        price_change_percentage_24h: 2.5,
++        market_cap: 900000000000,
++        volume_24h: 30000000000,
++        image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
++      },
++      {
++        id: 'ethereum',
++        symbol: 'ETH',
++        name: 'Ethereum',
++        current_price: 3000,
++        price_change_percentage_24h: -1.2,
++        market_cap: 350000000000,
++        volume_24h: 15000000000,
++        image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
++      },
++      {
++        id: 'cardano',
++        symbol: 'ADA',
++        name: 'Cardano',
++        current_price: 1.2,
++        price_change_percentage_24h: 5.3,
++        market_cap: 40000000000,
++        volume_24h: 2000000000,
++        image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
++      },
++      {
++        id: 'solana',
++        symbol: 'SOL',
++        name: 'Solana',
++        current_price: 150,
++        price_change_percentage_24h: 3.7,
++        market_cap: 60000000000,
++        volume_24h: 3000000000,
++        image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
++      }
++    ];
++  }
++}
++
++export async function fetchCryptoById(id: string): Promise<Cryptocurrency | null> {
++  try {
++    const response = await fetch(`/api/crypto?id=${id}`);
++    if (!response.ok) {
++      throw new Error(`Failed to fetch cryptocurrency with id: ${id}`);
++    }
++    return await response.json();
++  } catch (error) {
++    console.error(`Error fetching cryptocurrency with id ${id}:`, error);
++    return null;
++  }
++}
+\ No newline at end of file
+-- 
+2.49.0.windows.1
+
